@@ -1,4 +1,4 @@
-import { Habit } from './types';
+import { Habit } from './types.ts';
 
 // Format date to YYYY-MM-DD for storage keys
 export const formatDateKey = (date: Date): string => {

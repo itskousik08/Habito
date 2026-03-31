@@ -1,11 +1,11 @@
 import React from 'react';
-import { HabitProvider, useHabitContext } from './context/HabitContext';
-import { BottomNav } from './components/BottomNav';
-import { TodayView } from './views/TodayView';
-import { AddHabitView } from './views/AddHabitView';
-import { ProgressView } from './views/ProgressView';
-import { SettingsView } from './views/SettingsView';
-import { HabitDetailView } from './views/HabitDetailView';
+import { HabitProvider, useHabitContext } from './context/HabitContext.tsx';
+import { BottomNav } from './components/BottomNav.tsx';
+import { TodayView } from './views/TodayView.tsx';
+import { AddHabitView } from './views/AddHabitView.tsx';
+import { ProgressView } from './views/ProgressView.tsx';
+import { SettingsView } from './views/SettingsView.tsx';
+import { HabitDetailView } from './views/HabitDetailView.tsx';
 
 const AppContent: React.FC = () => {
   const { currentView } = useHabitContext();

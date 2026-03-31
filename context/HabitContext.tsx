@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Habit, AppSettings, ViewState, JournalEntry } from '../types';
-import { formatDateKey } from '../utils';
+import { Habit, AppSettings, ViewState, JournalEntry } from '../types.ts';
+import { formatDateKey } from '../utils.ts';
 
 interface HabitContextType {
   habits: Habit[];
@@ -43,13 +43,23 @@ const INITIAL_SETTINGS: AppSettings = {
 
 export const HabitProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [habits, setHabits] = useState<Habit[]>(() => {
-    const saved = localStorage.getItem('habitflow_habits');
-    return saved ? JSON.parse(saved) : INITIAL_HABITS;
+    try {
+      const saved = localStorage.getItem('habitflow_habits');
+      return saved ? JSON.parse(saved) : INITIAL_HABITS;
+    } catch (e) {
+      console.error("Failed to parse habits from localStorage", e);
+      return INITIAL_HABITS;
+    }
   });
 
   const [settings, setSettings] = useState<AppSettings>(() => {
-    const saved = localStorage.getItem('habitflow_settings');
-    return saved ? JSON.parse(saved) : INITIAL_SETTINGS;
+    try {
+      const saved = localStorage.getItem('habitflow_settings');
+      return saved ? JSON.parse(saved) : INITIAL_SETTINGS;
+    } catch (e) {
+      console.error("Failed to parse settings from localStorage", e);
+      return INITIAL_SETTINGS;
+    }
   });
 
   const [currentView, setCurrentView] = useState<ViewState>('today');

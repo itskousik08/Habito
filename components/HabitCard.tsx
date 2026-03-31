@@ -1,8 +1,8 @@
 import React from 'react';
 import { Check, Flame } from 'lucide-react';
-import { Habit } from '../types';
-import { formatDateKey, isHabitCompleted, calculateStreak } from '../utils';
-import { useHabitContext } from '../context/HabitContext';
+import { Habit } from '../types.ts';
+import { formatDateKey, isHabitCompleted, calculateStreak } from '../utils.ts';
+import { useHabitContext } from '../context/HabitContext.tsx';
 
 interface HabitCardProps {
   habit: Habit;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Home, PlusCircle, BarChart2, Settings } from 'lucide-react';
-import { useHabitContext } from '../context/HabitContext';
+import { useHabitContext } from '../context/HabitContext.tsx';
 
 export const BottomNav: React.FC = () => {
   const { currentView, navigate } = useHabitContext();

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useHabitContext } from '../context/HabitContext';
-import { HabitCard } from '../components/HabitCard';
-import { isHabitDueOnDate, formatDateKey, calculateUserLevel } from '../utils';
+import { useHabitContext } from '../context/HabitContext.tsx';
+import { HabitCard } from '../components/HabitCard.tsx';
+import { isHabitDueOnDate, formatDateKey, calculateUserLevel } from '../utils.ts';
 import { Zap } from 'lucide-react';
 
 export const TodayView: React.FC = () => {

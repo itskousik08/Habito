@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useHabitContext } from '../context/HabitContext';
+import { useHabitContext } from '../context/HabitContext.tsx';
 import { Moon, Sun, Volume2, VolumeX, Zap, RefreshCw, Archive, ChevronDown, ChevronUp, Reply } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {

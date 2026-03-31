@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useHabitContext } from '../context/HabitContext';
-import { ALL_COLORS, COMMON_EMOJIS, CATEGORIES } from '../utils';
-import { Frequency, HabitGoal } from '../types';
+import { useHabitContext } from '../context/HabitContext.tsx';
+import { ALL_COLORS, COMMON_EMOJIS, CATEGORIES } from '../utils.ts';
+import { Frequency, HabitGoal } from '../types.ts';
 import { X, Check, Sparkles, Target, BookOpen, Flame, Calendar, Hash, Trophy, Repeat, ArrowRight, Tag } from 'lucide-react';
-import { HabitCard } from '../components/HabitCard';
+import { HabitCard } from '../components/HabitCard.tsx';
 
 // Pre-defined suggestions for "Quick Start"
 const SUGGESTIONS = [

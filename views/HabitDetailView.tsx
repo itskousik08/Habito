@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { useHabitContext } from '../context/HabitContext';
+import { useHabitContext } from '../context/HabitContext.tsx';
 import { ArrowLeft, Trash2, Calendar as CalendarIcon, Flame, Trophy, Lock, Book, PenLine, Send, Archive, RefreshCw } from 'lucide-react';
-import { formatDateKey, calculateStreak, getDaysInMonth, getFirstDayOfMonth } from '../utils';
+import { formatDateKey, calculateStreak, getDaysInMonth, getFirstDayOfMonth } from '../utils.ts';
 
 type Tab = 'overview' | 'journal';
 

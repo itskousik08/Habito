@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { useHabitContext } from '../context/HabitContext';
+import { useHabitContext } from '../context/HabitContext.tsx';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
-import { formatDateKey, getDaysInMonth, getFirstDayOfMonth, calculateStreak } from '../utils';
+import { formatDateKey, getDaysInMonth, getFirstDayOfMonth, calculateStreak } from '../utils.ts';
 import { X, Check, Award, Star, Zap, Medal, Flame, TrendingUp } from 'lucide-react';
 
 type TimeRange = '7d' | '30d' | '60d' | '90d';
