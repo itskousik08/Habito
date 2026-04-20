@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Flame } from 'lucide-react';
+import { Check, Flame, Zap } from 'lucide-react';
 import { Habit } from '../types.ts';
 import { formatDateKey, isHabitCompleted, calculateStreak } from '../utils.ts';
 import { useHabitContext } from '../context/HabitContext.tsx';
@@ -9,7 +9,7 @@ interface HabitCardProps {
 }
 
 export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
-  const { toggleCompletion, settings, navigate } = useHabitContext();
+  const { toggleCompletion, settings, navigate, toggleNonNegotiable } = useHabitContext();
   const today = new Date();
   const dateKey = formatDateKey(today);
   const isCompleted = isHabitCompleted(habit, dateKey);
@@ -27,6 +27,10 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
   return (
     <div 
       onClick={() => navigate('habit-detail', habit.id)}
+      onContextMenu={(e) => { 
+        e.preventDefault(); 
+        toggleNonNegotiable(habit.id); 
+      }}
       className={`
         relative group overflow-hidden rounded-3xl p-4 mb-3 transition-all duration-300 ease-out transform 
         hover:scale-[1.02] active:scale-[0.98] cursor-pointer
@@ -35,11 +39,17 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
           ? 'bg-opacity-10 dark:bg-opacity-10 border-transparent' 
           : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-lg hover:shadow-gray-200/40 dark:hover:shadow-black/20'
         }
+        ${habit.isNonNegotiable ? 'border-brand-500/30' : ''}
       `}
       style={{
         backgroundColor: isCompleted ? `${habit.color}10` : undefined, 
       }}
     >
+      {habit.isNonNegotiable && (
+        <div className="absolute top-2 right-2 opacity-50 group-hover:opacity-100 transition-opacity">
+          <Zap size={10} className="text-brand-500 fill-brand-500" />
+        </div>
+      )}
       <div className="flex items-center justify-between gap-4">
         {/* Left: Content */}
         <div className="flex items-center gap-4 flex-1 min-w-0">

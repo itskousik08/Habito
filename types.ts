@@ -30,6 +30,32 @@ export interface Habit {
   goal?: HabitGoal; // Flexible Goal System
   journal: JournalEntry[];
   archived?: boolean;
+  isNonNegotiable?: boolean; // Part of Discipline OS
+}
+
+export interface TimeBlock {
+  id: string;
+  label: string;
+  startTime: string; // "HH:mm"
+  endTime: string; // "HH:mm"
+  isEnabled: boolean;
+  type: 'work' | 'rest' | 'personal' | 'routine';
+}
+
+export interface DailyCheckIn {
+  morningMood?: string;
+  morningNotes?: string;
+  topThreeTasks: string[];
+  eveningReflection?: string;
+  dayRating?: 'perfect' | 'good' | 'missed';
+  completedAt?: string;
+}
+
+export interface DisciplineStats {
+  score: number;
+  zeroDayCount: number;
+  savedDayStreak: number;
+  perfectDayStreak: number;
 }
 
 export interface AppSettings {
@@ -37,9 +63,10 @@ export interface AppSettings {
   soundEnabled: boolean;
   animationsEnabled: boolean;
   customLogo?: string | null;
+  focusModeEnabled?: boolean;
 }
 
-export type ViewState = 'today' | 'add' | 'progress' | 'settings' | 'habit-detail';
+export type ViewState = 'today' | 'add' | 'progress' | 'settings' | 'habit-detail' | 'routine' | 'focus';
 
 // For the chart
 export interface WeeklyStats {

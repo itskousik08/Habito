@@ -1,23 +1,31 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Habit, AppSettings, ViewState, JournalEntry } from '../types.ts';
-import { formatDateKey } from '../utils.ts';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import { Habit, AppSettings, ViewState, JournalEntry, TimeBlock, DailyCheckIn, DisciplineStats } from '../types.ts';
+import { formatDateKey, calculateDisciplineScore, getDayStatus } from '../utils.ts';
 
 interface HabitContextType {
   habits: Habit[];
   settings: AppSettings;
   currentView: ViewState;
   selectedHabitId: string | null;
+  routine: TimeBlock[];
+  checkIns: Record<string, DailyCheckIn>;
+  disciplineStats: DisciplineStats;
   
   addHabit: (habit: Omit<Habit, 'id' | 'createdAt' | 'completedDates' | 'journal'> & { initialNote?: string }) => void;
   updateHabit: (habit: Habit) => void;
   deleteHabit: (id: string) => void;
   toggleCompletion: (id: string, date: Date) => void;
   toggleArchive: (id: string) => void;
+  toggleNonNegotiable: (id: string) => void;
   addJournalEntry: (habitId: string, content: string) => void;
+  
+  updateRoutine: (blocks: TimeBlock[]) => void;
+  updateCheckIn: (dateKey: string, data: Partial<DailyCheckIn>) => void;
   
   toggleTheme: () => void;
   toggleSound: () => void;
   toggleAnimations: () => void;
+  toggleFocusMode: () => void;
   setCustomLogo: (logo: string | null) => void;
   resetAll: () => void;
   
@@ -39,7 +47,15 @@ const INITIAL_SETTINGS: AppSettings = {
   soundEnabled: true,
   animationsEnabled: true,
   customLogo: null,
+  focusModeEnabled: false,
 };
+
+const INITIAL_ROUTINE: TimeBlock[] = [
+  { id: '1', label: 'Wake Up', startTime: '06:00', endTime: '06:30', isEnabled: true, type: 'routine' },
+  { id: '2', label: 'Workout', startTime: '07:00', endTime: '08:00', isEnabled: true, type: 'work' },
+  { id: '3', label: 'Deep Work Block 1', startTime: '09:00', endTime: '12:00', isEnabled: true, type: 'work' },
+  { id: '4', label: 'Learning', startTime: '20:00', endTime: '21:00', isEnabled: true, type: 'personal' },
+];
 
 export const HabitProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [habits, setHabits] = useState<Habit[]>(() => {
@@ -62,13 +78,91 @@ export const HabitProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   });
 
+  const [routine, setRoutine] = useState<TimeBlock[]>(() => {
+    const saved = localStorage.getItem('habitflow_routine');
+    return saved ? JSON.parse(saved) : INITIAL_ROUTINE;
+  });
+
+  const [checkIns, setCheckIns] = useState<Record<string, DailyCheckIn>>(() => {
+    const saved = localStorage.getItem('habitflow_checkins');
+    return saved ? JSON.parse(saved) : {};
+  });
+
   const [currentView, setCurrentView] = useState<ViewState>('today');
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
+
+  const disciplineStats = useMemo(() => {
+    const score = calculateDisciplineScore(habits, checkIns);
+    
+    // Calculate streaks and zero days from history
+    let zeroDayCount = 0;
+    let savedDayStreak = 0;
+    let perfectDayStreak = 0;
+
+    const today = new Date();
+    
+    // Calculate Perfect Streak (all habits done)
+    let currentCheck = new Date(today);
+    // If today is still in progress, check from yesterday if today isn't perfect yet
+    const todayKey = formatDateKey(currentCheck);
+    const todayStatus = getDayStatus(habits, todayKey);
+    
+    if (todayStatus !== 'perfect') {
+      currentCheck.setDate(currentCheck.getDate() - 1);
+    }
+
+    while (true) {
+      const key = formatDateKey(currentCheck);
+      const status = getDayStatus(habits, key);
+      if (status === 'perfect') {
+        perfectDayStreak++;
+        currentCheck.setDate(currentCheck.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+
+    // Calculate Saved Streak (no zero days)
+    currentCheck = new Date(today);
+    if (todayStatus === 'zero') {
+      currentCheck.setDate(currentCheck.getDate() - 1);
+    }
+
+    while (true) {
+      const key = formatDateKey(currentCheck);
+      const status = getDayStatus(habits, key);
+      if (status !== 'zero' && status !== 'neutral') {
+        savedDayStreak++;
+        currentCheck.setDate(currentCheck.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+
+    // Count Zero Days in last 30 days
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      if (getDayStatus(habits, formatDateKey(d)) === 'zero') {
+        zeroDayCount++;
+      }
+    }
+    
+    return { score, zeroDayCount, savedDayStreak, perfectDayStreak };
+  }, [habits, checkIns]);
 
   // Persistence Effects
   useEffect(() => {
     localStorage.setItem('habitflow_habits', JSON.stringify(habits));
   }, [habits]);
+
+  useEffect(() => {
+    localStorage.setItem('habitflow_routine', JSON.stringify(routine));
+  }, [routine]);
+
+  useEffect(() => {
+    localStorage.setItem('habitflow_checkins', JSON.stringify(checkIns));
+  }, [checkIns]);
 
   useEffect(() => {
     localStorage.setItem('habitflow_settings', JSON.stringify(settings));
@@ -97,6 +191,7 @@ export const HabitProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       category: data.category || 'Other',
       targetStreak: effectiveTargetStreak, 
       goal: data.goal,
+      isNonNegotiable: data.isNonNegotiable || false,
       journal: data.initialNote ? [{
         id: Math.random().toString(36).substr(2, 9),
         date: new Date().toISOString(),
@@ -121,6 +216,21 @@ export const HabitProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const toggleArchive = (id: string) => {
     setHabits((prev) => prev.map((h) => h.id === id ? { ...h, archived: !h.archived } : h));
+  };
+
+  const toggleNonNegotiable = (id: string) => {
+    setHabits((prev) => prev.map((h) => h.id === id ? { ...h, isNonNegotiable: !h.isNonNegotiable } : h));
+  };
+
+  const updateRoutine = (blocks: TimeBlock[]) => {
+    setRoutine(blocks);
+  };
+
+  const updateCheckIn = (dateKey: string, data: Partial<DailyCheckIn>) => {
+    setCheckIns(prev => ({
+      ...prev,
+      [dateKey]: { ...(prev[dateKey] || { topThreeTasks: [] }), ...data }
+    }));
   };
 
   const toggleCompletion = (id: string, date: Date) => {
@@ -158,12 +268,17 @@ export const HabitProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const toggleTheme = () => setSettings(s => ({ ...s, darkMode: !s.darkMode }));
   const toggleSound = () => setSettings(s => ({ ...s, soundEnabled: !s.soundEnabled }));
   const toggleAnimations = () => setSettings(s => ({ ...s, animationsEnabled: !s.animationsEnabled }));
+  const toggleFocusMode = () => setSettings(s => ({ ...s, focusModeEnabled: !s.focusModeEnabled }));
   const setCustomLogo = (logo: string | null) => setSettings(s => ({ ...s, customLogo: logo }));
   
   const resetAll = () => {
     if(confirm("Reset all data? This cannot be undone.")) {
       setHabits([]);
+      setRoutine(INITIAL_ROUTINE);
+      setCheckIns({});
       localStorage.removeItem('habitflow_habits');
+      localStorage.removeItem('habitflow_routine');
+      localStorage.removeItem('habitflow_checkins');
     }
   };
 
@@ -180,15 +295,22 @@ export const HabitProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         settings,
         currentView,
         selectedHabitId,
+        routine,
+        checkIns,
+        disciplineStats,
         addHabit,
         updateHabit,
         deleteHabit,
         toggleCompletion,
         toggleArchive,
+        toggleNonNegotiable,
         addJournalEntry,
+        updateRoutine,
+        updateCheckIn,
         toggleTheme,
         toggleSound,
         toggleAnimations,
+        toggleFocusMode,
         setCustomLogo,
         resetAll,
         navigate,

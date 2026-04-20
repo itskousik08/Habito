@@ -7,7 +7,7 @@ import { X, Check, Award, Star, Zap, Medal, Flame, TrendingUp } from 'lucide-rea
 type TimeRange = '7d' | '30d' | '60d' | '90d';
 
 export const ProgressView: React.FC = () => {
-  const { habits } = useHabitContext();
+  const { habits, disciplineStats } = useHabitContext();
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -159,15 +159,34 @@ export const ProgressView: React.FC = () => {
     <div className="pb-24 pt-8 px-6 max-w-md mx-auto animate-fade-in">
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Your Progress</h1>
 
-      {/* Summary Cards */}
+      {/* Summary Cards - Discipline OS Version */}
       <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="bg-blue-500 text-white p-5 rounded-3xl shadow-lg shadow-blue-500/20">
-          <div className="text-4xl font-bold mb-1">{selectedCategory === 'All' ? totalCompletions : currentCategoryCompletions}</div>
-          <div className="text-blue-100 text-sm font-medium">Total Check-ins</div>
+        <div className="bg-black text-white p-5 rounded-3xl shadow-xl shadow-gray-200/20 dark:shadow-none border border-gray-100 dark:border-gray-800">
+          <div className="text-4xl font-bold mb-1">{disciplineStats.perfectDayStreak}</div>
+          <div className="text-gray-400 text-xs font-bold uppercase tracking-widest">Perfect Streak</div>
+          <div className="mt-3 flex items-center gap-1.5 text-[10px] text-orange-400 font-bold bg-orange-400/10 px-2 py-1 rounded-full w-fit">
+            <Flame size={10} className="fill-orange-400" />
+            ON FIRE
+          </div>
         </div>
-        <div className="bg-purple-500 text-white p-5 rounded-3xl shadow-lg shadow-purple-500/20">
-          <div className="text-4xl font-bold mb-1">{activeHabits.length}</div>
-          <div className="text-purple-100 text-sm font-medium">Active {selectedCategory === 'All' ? '' : selectedCategory} Habits</div>
+        <div className="bg-brand-600 text-white p-5 rounded-3xl shadow-xl shadow-brand-500/20">
+          <div className="text-4xl font-bold mb-1">{disciplineStats.score}</div>
+          <div className="text-brand-100 text-xs font-bold uppercase tracking-widest">Discipline Score</div>
+          <div className="mt-3 flex items-center gap-1.5 text-[10px] text-brand-100 font-bold bg-white/10 px-2 py-1 rounded-full w-fit">
+            <Zap size={10} className="fill-brand-100" />
+            ELITE LEVEL
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-center">
+          <div className="text-2xl font-bold text-gray-900 dark:text-white">{disciplineStats.savedDayStreak}</div>
+          <div className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Recovery Streak</div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-center">
+          <div className="text-2xl font-bold text-red-500">{disciplineStats.zeroDayCount}</div>
+          <div className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Zero Days (30d)</div>
         </div>
       </div>
 

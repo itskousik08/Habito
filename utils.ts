@@ -104,3 +104,59 @@ export const MOTIVATIONAL_QUOTES = [
 ];
 
 export const getRandomQuote = () => MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)];
+
+// Discipline OS Utilities
+export const calculateDisciplineScore = (habits: Habit[], checkIns?: Record<string, any>): number => {
+  if (habits.length === 0) return 0;
+  
+  const today = new Date();
+  const todayKey = formatDateKey(today);
+  
+  // Weights
+  const HABIT_WEIGHT = 0.5;
+  const NON_NEGOTIABLE_WEIGHT = 1.0; 
+  const CHECKIN_WEIGHT = 0.25;
+  
+  let score = 0;
+  let totalPossible = 0;
+  
+  const activeHabits = habits.filter(h => !h.archived && isHabitDueOnDate(h, today));
+  
+  if (activeHabits.length === 0 && (!checkIns || !checkIns[todayKey])) return 100;
+
+  activeHabits.forEach(habit => {
+    const isDone = habit.completedDates.includes(todayKey);
+    const weight = habit.isNonNegotiable ? NON_NEGOTIABLE_WEIGHT : HABIT_WEIGHT;
+    
+    totalPossible += weight;
+    if (isDone) score += weight;
+  });
+
+  // Check-in bonus
+  if (checkIns && checkIns[todayKey]) {
+    const ci = checkIns[todayKey];
+    totalPossible += CHECKIN_WEIGHT * 2;
+    if (ci.morningMood) score += CHECKIN_WEIGHT;
+    if (ci.dayRating) score += CHECKIN_WEIGHT;
+  }
+
+  return totalPossible > 0 ? Math.round((score / totalPossible) * 100) : 100;
+};
+
+export const getDayStatus = (habits: Habit[], dateKey: string) => {
+  const activeHabits = habits.filter(h => !h.archived); 
+  const nonNegotiables = activeHabits.filter(h => h.isNonNegotiable);
+  
+  if (activeHabits.length === 0) return 'neutral';
+
+  const allDone = activeHabits.every(h => h.completedDates.includes(dateKey));
+  const nnDone = nonNegotiables.length > 0 && nonNegotiables.every(h => h.completedDates.includes(dateKey));
+  
+  if (allDone) return 'perfect';
+  if (nnDone) return 'saved'; // Every non-negotiable is done (No Zero Day)
+  
+  const anyDone = activeHabits.some(h => h.completedDates.includes(dateKey));
+  if (!anyDone) return 'zero';
+  
+  return 'good';
+};
